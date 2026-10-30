@@ -1,15 +1,9 @@
 #EXTM3U
-# Generated: 2026-10-30 03:08:45 UTC
+# Generated: 2026-10-30 03:20:48 UTC
 # YouTube watch links + auto logo
 
-#EXTINF:-1 tvg-id="Kapamilya Online Live" tvg-name="Kapamilya Online Live" tvg-logo="https://i.ytimg.com/vi/CdsVq5VK3B8/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGAoRjAP&rs=AOn4CLD_0HIb5eccywkaZGhjfLTxvTh-6A" group-title="LIVE",Kapamilya Online Live
-https://www.youtube.com/watch?v=CdsVq5VK3B8
+#EXTINF:-1 tvg-id="Kapamilya Online Live" tvg-name="Kapamilya Online Live" tvg-logo="https://i.ytimg.com/vi/3kwVFEKZJQQ/hqdefault.jpg?sqp=-oaymwEcCOADEI4CSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCRhbknNNBwZAMqT67u0rz1yWfI6g" group-title="LIVE",Kapamilya Online Live
+https://www.youtube.com/watch?v=3kwVFEKZJQQ
 
-#EXTINF:-1 tvg-id="TV5 Kapatid Livestream | October 30, 2026 | Frontline Express LIVE" tvg-name="TV5 Kapatid Livestream | October 30, 2026 | Frontline Express LIVE" tvg-logo="https://i.ytimg.com/vi/Evy3nQgqduc/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCwDI0H4fJ5UgvtcYBqZOApWmoHmA" group-title="LIVE",TV5 Kapatid Livestream | October 30, 2026 | Frontline Express LIVE
-https://www.youtube.com/watch?v=Evy3nQgqduc
-
-#EXTINF:-1 tvg-id="EAT BULAGA LIVE | TVJ ON TV5  | OCTOBER 30,  2026" tvg-name="EAT BULAGA LIVE | TVJ ON TV5  | OCTOBER 30,  2026" tvg-logo="https://i.ytimg.com/vi/9GXHFciDlAc/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLB9ZU56dFtLNyhKx6fv-udKh_4K9Q" group-title="LIVE",EAT BULAGA LIVE | TVJ ON TV5  | OCTOBER 30,  2026
-https://www.youtube.com/watch?v=9GXHFciDlAc
-
-#EXTINF:-1 tvg-id="Kapuso Stream: October 30, 2026 | GMA LIVESTREAM" tvg-name="Kapuso Stream: October 30, 2026 | GMA LIVESTREAM" tvg-logo="https://i.ytimg.com/vi/OlqYsl1AZYA/hq720.jpg?v=6ae3eff5&sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBX5pB6Otqc_ogn-D8NgXl9ycSPeA" group-title="LIVE",Kapuso Stream: October 30, 2026 | GMA LIVESTREAM
+#EXTINF:-1 tvg-id="Kapuso Stream: October 30, 2026 | GMA LIVESTREAM" tvg-name="Kapuso Stream: October 30, 2026 | GMA LIVESTREAM" tvg-logo="https://i.ytimg.com/vi/OlqYsl1AZYA/hq720.jpg?v=6ae3eff5&sqp=-oaymwEgCNAFEJQDSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLABuxS1ytzQqz_qZoMLJFLdFKxBwg" group-title="LIVE",Kapuso Stream: October 30, 2026 | GMA LIVESTREAM
 https://www.youtube.com/watch?v=OlqYsl1AZYA
