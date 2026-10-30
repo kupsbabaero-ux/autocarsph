@@ -2,23 +2,61 @@
 """
 YouTube Live → M3U (Search by Name)
 Lalabas: https://www.youtube.com/watch?v=XXXX
-Mas stable, hindi madaling mag-exit code 1
+Prefer streams na may TODAY'S DATE sa title
 """
 
 import subprocess
 import json
 import os
 import sys
+import re
 from datetime import datetime, timezone
 
 STREAMS_FILE = "streams.txt"
 OUTPUT_M3U = "playlist.m3u"
 
 
+def get_today_strings():
+    """Iba't ibang format ng today's date para i-match sa title"""
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    day = now.day
+
+    month_names = [
+        "", "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
+    month_abbr = [
+        "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ]
+
+    full = month_names[month]
+    abbr = month_abbr[month]
+
+    formats = [
+        f"{full} {day}, {year}",      # October 30, 2026
+        f"{full} {day} {year}",       # October 30 2026
+        f"{abbr} {day}, {year}",      # Oct 30, 2026
+        f"{abbr} {day} {year}",       # Oct 30 2026
+        f"{full} {day}",              # October 30
+        f"{abbr} {day}",              # Oct 30
+        f"{day} {full} {year}",       # 30 October 2026
+        f"{day} {abbr} {year}",       # 30 Oct 2026
+        f"{year}-{month:02d}-{day:02d}",  # 2026-10-30
+        f"{month:02d}/{day:02d}/{year}",  # 10/30/2026
+        f"{day}/{month:02d}/{year}",      # 30/10/2026
+        f"{month}/{day}/{year}",          # 10/30/2026
+        f"{day}.{month:02d}.{year}",      # 30.10.2026
+    ]
+    return formats, f"{full} {day}"
+
+
 def parse_names():
     names = []
     if not os.path.exists(STREAMS_FILE):
-        print(f"[!] {STREAMS_FILE} not found — gumawa muna")
+        print(f"[!] {STREAMS_FILE} not found")
         return names
     with open(STREAMS_FILE, "r", encoding="utf-8") as f:
         for line in f:
@@ -30,7 +68,6 @@ def parse_names():
 
 
 def yt_dlp_cmd(extra_args):
-    """Build yt-dlp command with safe defaults"""
     cmd = [
         "yt-dlp",
         "--no-download",
@@ -39,7 +76,6 @@ def yt_dlp_cmd(extra_args):
         "--no-check-certificates",
         "--socket-timeout", "20",
     ]
-    # subukan i-add ang node runtime kung available
     try:
         subprocess.run(["node", "--version"], capture_output=True, timeout=5)
         cmd += ["--js-runtimes", "node"]
@@ -50,7 +86,6 @@ def yt_dlp_cmd(extra_args):
 
 
 def get_live_info(video_id: str):
-    """Try confirm LIVE. Returns dict or None. Never crashes."""
     url = f"https://www.youtube.com/watch?v={video_id}"
     try:
         cmd = yt_dlp_cmd(["--dump-json", url])
@@ -73,11 +108,47 @@ def get_live_info(video_id: str):
         return None
 
 
+def score_title(title: str, query: str, today_formats: list, today_short: str):
+    """Mas mataas score kung may today's date + live + match sa query"""
+    t = title.lower()
+    q = query.lower()
+    score = 0
+
+    # Today's date boost (pinakamahalaga)
+    for fmt in today_formats:
+        if fmt.lower() in t:
+            score += 50
+            break
+    # partial date
+    if today_short.lower() in t:
+        score += 30
+
+    # LIVE keywords
+    if "live" in t:
+        score += 15
+    if "livestream" in t or "live stream" in t:
+        score += 10
+
+    # Query words
+    for word in q.split():
+        if len(word) > 2 and word in t:
+            score += 5
+
+    # Penalty para sa replay / old
+    if "replay" in t or "re-run" in t or "rerun" in t:
+        score -= 20
+    if "part 1" in t or "part 2" in t or "part 3" in t:
+        score -= 5
+
+    return score
+
+
 def search_live(query: str):
-    """Search + score. Never crashes."""
+    today_formats, today_short = get_today_strings()
+    print(f"  (prefer date: {today_short})")
+
     queries = [query]
     q_lower = query.lower()
-
     if "kapamilya" in q_lower:
         queries = ["Kapamilya Online Live"] + queries
     if "kapatid" in q_lower or "tv5" in q_lower:
@@ -85,13 +156,16 @@ def search_live(query: str):
     if "24 oras" in q_lower:
         queries = ["24 Oras Live", "24 Oras Livestream"] + queries
 
+    # Idagdag ang date sa search para mas relevant
+    queries = [f"{q} {today_short}" for q in queries] + queries
+
     seen = set()
     candidates = []
 
     for sq in queries:
         try:
             cmd = yt_dlp_cmd(["--dump-json", "--flat-playlist", f"ytsearch10:{sq}"])
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=55)
             if result.returncode != 0 or not result.stdout.strip():
                 continue
 
@@ -109,26 +183,22 @@ def search_live(query: str):
                     continue
                 seen.add(vid)
 
-                t = title.lower()
-                score = 0
-                if "live" in t:
-                    score += 15
-                if "livestream" in t or "live stream" in t:
-                    score += 10
-                for word in query.lower().split():
-                    if len(word) > 2 and word in t:
-                        score += 4
+                score = score_title(title, query, today_formats, today_short)
                 candidates.append((score, vid, title))
         except Exception as e:
-            print(f"  [!] search error ({sq}): {e}")
+            print(f"  [!] search error: {e}")
             continue
 
     candidates.sort(key=lambda x: -x[0])
     print(f"  candidates: {len(candidates)}")
 
-    # 1) Confirm is_live
-    for score, vid, title in candidates[:8]:
-        if score < 8:
+    # Show top 3 for debug
+    for i, (sc, vid, title) in enumerate(candidates[:3]):
+        print(f"    #{i+1} score={sc} | {title[:55]}")
+
+    # 1) Confirm is_live (prefer high score + today)
+    for score, vid, title in candidates[:10]:
+        if score < 10:
             continue
         info = get_live_info(vid)
         if info and info.get("is_live"):
@@ -136,11 +206,25 @@ def search_live(query: str):
             print(f"     {info['url']}")
             return info
 
-    # 2) Fallback — strong title match (para sa geo-block)
+    # 2) Fallback — strong match with today's date
     for score, vid, title in candidates[:6]:
         t = title.lower()
-        if score >= 15 and "live" in t:
-            print(f"  ⚠️  Strong match (using): {title[:55]}")
+        if score >= 40 and "live" in t:  # may date + live
+            print(f"  ⚠️  Using today match: {title[:55]}")
+            print(f"     https://www.youtube.com/watch?v={vid}")
+            return {
+                "is_live": True,
+                "title": title,
+                "thumbnail": "",
+                "channel": "YouTube",
+                "url": f"https://www.youtube.com/watch?v={vid}",
+                "id": vid
+            }
+
+    # 3) Last fallback — any strong live match
+    for score, vid, title in candidates[:5]:
+        if score >= 15 and "live" in title.lower():
+            print(f"  ⚠️  Using best live match: {title[:55]}")
             print(f"     https://www.youtube.com/watch?v={vid}")
             return {
                 "is_live": True,
@@ -194,10 +278,10 @@ def generate_m3u(results):
 def main():
     print("=" * 55)
     print("YouTube Live → M3U  (Search by Name)")
+    print("Prefer: today's date streams")
     print("Output: https://www.youtube.com/watch?v=XXXX")
     print("=" * 55)
 
-    # Check yt-dlp
     try:
         r = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True, timeout=10)
         if r.returncode != 0:
@@ -206,11 +290,9 @@ def main():
     except Exception:
         print("\n[!] ERROR: yt-dlp not installed or not working")
         print("    Fix:  pip install -U yt-dlp")
-        print("    or:   python -m pip install -U yt-dlp")
-        # still write empty playlist para hindi empty error
         with open(OUTPUT_M3U, "w") as f:
             f.write("#EXTM3U\n# yt-dlp missing\n")
-        sys.exit(0)   # exit 0 para hindi code 1
+        sys.exit(0)
 
     names = parse_names()
     if not names:
@@ -233,7 +315,7 @@ def main():
 
     generate_m3u(results)
     print("\nDone.")
-    sys.exit(0)   # always exit 0
+    sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -241,10 +323,9 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(f"[!] Unexpected error: {e}")
-        # try write something
         try:
             with open(OUTPUT_M3U, "w") as f:
-                f.write("#EXTM3U\n# error occurred\n")
+                f.write("#EXTM3U\n# error\n")
         except Exception:
             pass
         sys.exit(0)
