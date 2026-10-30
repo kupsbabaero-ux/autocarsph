@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 YouTube Live → M3U (Search by Name)
-- Ilagay mo lang ang pangalan sa streams.txt
-- Lalabas ang link na ganito: https://www.youtube.com/watch?v=XXXX
-- Kapag offline → hindi isinasama
+Lalabas: https://www.youtube.com/watch?v=XXXX
+Optimized para sa Kapamilya / TV5 / 24 Oras
 """
 
 import subprocess
@@ -30,104 +29,129 @@ def parse_names():
     return names
 
 
-def get_live_video_id(yt_url: str):
-    """Kunin ang video ID kung LIVE talaga"""
+def yt_dlp_base():
+    """Common yt-dlp args"""
+    return [
+        "yt-dlp",
+        "--js-runtimes", "node",
+        "--no-download",
+        "--no-warnings",
+        "--quiet",
+        "--no-check-certificates",
+    ]
+
+
+def get_live_info(video_id: str):
+    """Try to confirm if LIVE. Returns info or None."""
+    url = f"https://www.youtube.com/watch?v={video_id}"
     try:
-        cmd = [
-            "yt-dlp",
-            "--dump-json",
-            "--no-download",
-            "--no-warnings",
-            "--quiet",
-            "--no-check-certificates",
-            yt_url
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=45)
+        cmd = yt_dlp_base() + ["--dump-json", url]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=40)
         if result.returncode != 0:
+            # Geo-block or other error — return None, caller decides
             return None
 
         data = json.loads(result.stdout)
-
         is_live = data.get("is_live", False) or data.get("live_status") == "is_live"
         if not is_live:
             return None
 
-        video_id = data.get("id")
-        title = data.get("title", "Live")
-        thumbnail = data.get("thumbnail") or ""
-        channel = data.get("channel") or data.get("uploader") or "YouTube"
-
-        if not video_id:
-            return None
-
-        # Clean YouTube watch link
-        watch_url = f"https://www.youtube.com/watch?v={video_id}"
-
         return {
             "is_live": True,
-            "title": title,
-            "thumbnail": thumbnail,
-            "channel": channel,
-            "url": watch_url,
+            "title": data.get("title", "Live"),
+            "thumbnail": data.get("thumbnail") or "",
+            "channel": data.get("channel") or data.get("uploader") or "YouTube",
+            "url": f"https://www.youtube.com/watch?v={video_id}",
             "id": video_id
         }
     except Exception:
         return None
 
 
-def search_live(query: str, max_results: int = 12):
-    """Maghanap ng live sa YouTube"""
-    search_query = f"ytsearch{max_results}:{query}"
+def search_live(query: str):
+    """Search YouTube, prioritize strong LIVE matches"""
+    queries = [query]
 
-    try:
-        cmd = [
-            "yt-dlp",
-            "--dump-json",
-            "--flat-playlist",
-            "--no-download",
-            "--no-warnings",
-            "--quiet",
-            search_query
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=80)
+    q_lower = query.lower()
+    if "kapamilya" in q_lower:
+        queries = ["Kapamilya Online Live"] + queries
+    if "kapatid" in q_lower or "tv5" in q_lower:
+        queries = ["TV5 Kapatid Livestream", "TV5 Kapatid Live"] + queries
+    if "24 oras" in q_lower:
+        queries = ["24 Oras Live", "24 Oras Livestream"] + queries
 
-        if result.returncode != 0:
-            print(f"  [!] Search failed")
-            return None
+    seen = set()
+    candidates = []  # (score, video_id, title)
 
-        candidates = []
-        for line in result.stdout.strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                data = json.loads(line)
-                candidates.append(data)
-            except:
+    for sq in queries:
+        try:
+            cmd = yt_dlp_base() + ["--dump-json", "--flat-playlist", f"ytsearch12:{sq}"]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=55)
+            if result.returncode != 0:
                 continue
 
-        if not candidates:
-            print("  [!] Walang result")
-            return None
+            for line in result.stdout.strip().split("\n"):
+                if not line.strip():
+                    continue
+                try:
+                    item = json.loads(line)
+                except:
+                    continue
 
-        for item in candidates:
-            video_id = item.get("id")
-            if not video_id:
-                continue
+                vid = item.get("id")
+                title = (item.get("title") or "").strip()
+                if not vid or vid in seen:
+                    continue
+                seen.add(vid)
 
-            url = f"https://www.youtube.com/watch?v={video_id}"
-            info = get_live_video_id(url)
+                t = title.lower()
+                score = 0
+                if "live" in t:
+                    score += 15
+                if "livestream" in t or "live stream" in t:
+                    score += 10
+                # exact-ish match boost
+                for word in query.lower().split():
+                    if len(word) > 2 and word in t:
+                        score += 4
+                candidates.append((score, vid, title))
 
-            if info and info.get("is_live") and info.get("url"):
-                print(f"  ✅ LIVE: {info['title'][:60]}")
-                print(f"     {info['url']}")
-                return info
+        except Exception:
+            continue
 
-        print("  [!] Walang active live")
-        return None
+    candidates.sort(key=lambda x: -x[0])
 
-    except Exception as e:
-        print(f"  [!] Error: {e}")
-        return None
+    print(f"  top candidates: {len(candidates)}")
+
+    # 1) Try to confirm is_live on top candidates
+    for score, vid, title in candidates[:8]:
+        if score < 10:
+            continue
+        info = get_live_info(vid)
+        if info and info.get("is_live"):
+            print(f"  ✅ CONFIRMED LIVE: {info['title'][:60]}")
+            print(f"     {info['url']}")
+            return info
+
+    # 2) Fallback: if title looks very much like a live of this show,
+    #    accept it even if is_live check failed (geo-block common)
+    for score, vid, title in candidates[:5]:
+        t = title.lower()
+        if score >= 15 and "live" in t:
+            print(f"  ⚠️  Using strong match (is_live check failed, possible geo):")
+            print(f"     {title[:60]}")
+            print(f"     https://www.youtube.com/watch?v={vid}")
+            return {
+                "is_live": True,
+                "title": title,
+                "thumbnail": "",
+                "channel": "YouTube",
+                "url": f"https://www.youtube.com/watch?v={vid}",
+                "id": vid
+            }
+
+    print("  [!] Walang active live")
+    return None
 
 
 def generate_m3u(results):
@@ -143,7 +167,7 @@ def generate_m3u(results):
         name = item["name"]
         info = item.get("info")
 
-        if info and info.get("is_live") and info.get("url"):
+        if info and info.get("url"):
             logo = info.get("thumbnail") or ""
             title = (info.get("title") or name).replace(",", " -").replace('"', "'")
 
@@ -151,7 +175,7 @@ def generate_m3u(results):
                 f'#EXTINF:-1 tvg-id="{name}" tvg-name="{name}" '
                 f'tvg-logo="{logo}" group-title="LIVE",{name} • {title}'
             )
-            lines.append(info["url"])   # <-- https://www.youtube.com/watch?v=XXXX
+            lines.append(info["url"])
             lines.append("")
             active += 1
         else:
