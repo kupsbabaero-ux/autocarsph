@@ -1,16 +1,4 @@
-# ============================================
-# Ilagay LANG ang PANGALAN ng stream / match
-# Hindi na kailangan ng YouTube link
-# ============================================
-# Halimbawa:
-# NBA Finals Game 1
-# UFC 309
-# Manny Pacquiao vs
-# Lakers vs Celtics
-# Boxing Live
-
-# --- Ilagay sa baba ang mga pangalan ---
-
+# Ilagay LANG ang PANGALAN (isa kada line)
 Kapamilya Online Live
-TV5 Kapatid Livestream 
+TV5 Kapatid Livestream
 24 Oras Livestream
