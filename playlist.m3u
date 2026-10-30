@@ -1,3 +1,12 @@
 #EXTM3U
-# Generated on first run
-# Ilagay ang YouTube links sa streams.txt
+# Generated: 2026-10-30 02:24:31 UTC
+# Auto-updated by GitHub Actions (Search by Name)
+
+#EXTINF:-1 tvg-id="Kapamilya Online Live" tvg-name="Kapamilya Online Live" group-title="OFFLINE",Kapamilya Online Live [OFFLINE]
+https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
+
+#EXTINF:-1 tvg-id="TV5 Kapatid Livestream" tvg-name="TV5 Kapatid Livestream" group-title="OFFLINE",TV5 Kapatid Livestream [OFFLINE]
+https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
+
+#EXTINF:-1 tvg-id="24 Oras Livestream" tvg-name="24 Oras Livestream" group-title="OFFLINE",24 Oras Livestream [OFFLINE]
+https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
