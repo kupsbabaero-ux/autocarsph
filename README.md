@@ -1,30 +1,34 @@
-# YouTube Live → M3U Auto Updater
+# YouTube Live → M3U (Search by Name)
 
-Automatic na nag-uupdate ng M3U playlist mula sa YouTube Live links.  
-Kapag **tapos na ang live**, automatic na magiging OFFLINE ang entry.
+**Ilagay mo lang ang pangalan** ng match/stream.  
+Automatic na maghahanap ng matching YouTube Live.
+
+Kapag **tapos na ang live** → automatic magiging `[OFFLINE]`.
+
+---
 
 ## Paano gamitin
 
-### 1. I-upload ito sa GitHub
-1. Gumawa ng bagong repository (hal. `my-live-m3u`)
-2. I-upload lahat ng files dito (o extract ang zip at `git push`)
+### 1. I-upload sa GitHub
+1. Gumawa ng bagong repository
+2. I-upload lahat ng files (extract zip → upload)
+3. Pumunta sa **Actions** tab → i-enable ang workflow
 
-### 2. I-enable ang GitHub Actions
-- Pumunta sa **Actions** tab
-- I-enable ang workflows kung naka-disable
-
-### 3. Maglagay ng Live Links
+### 2. Maglagay ng pangalan
 I-edit ang `streams.txt`:
 
 ```txt
-# Format: Channel Name | YouTube URL
-NBA Finals | https://www.youtube.com/watch?v=XXXXX
-Boxing | https://www.youtube.com/@Channel/live
+NBA Finals Game 1
+UFC 309
+Manny Pacquiao
+Lakers vs Celtics Live
+Boxing Championship
 ```
 
-Pag-save at push → automatic na tatakbo ang updater.
+**Hindi na kailangan ng YouTube link.**  
+Save + push → automatic tatakbo.
 
-### 4. Gamitin ang M3U sa player
+### 3. Gamitin ang M3U
 ```
 https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/playlist.m3u
 ```
@@ -34,19 +38,25 @@ Mas mabilis (CDN):
 https://cdn.jsdelivr.net/gh/YOUR_USERNAME/YOUR_REPO@main/playlist.m3u
 ```
 
+---
+
 ## Schedule
 - Automatic every **20 minutes**
-- Pwede ring i-manual run sa Actions tab → "Update YouTube Live M3U" → Run workflow
+- Pwede ring i-manual run sa Actions tab
 
-## Notes
-- Gumagamit ng **yt-dlp** (pinakareliable para sa YouTube)
-- Kapag hindi na live → lalabas bilang `[OFFLINE]`
-- Pwede mong baguhin ang offline placeholder sa `generate.py`
+## Tips para mas accurate ang search
+- Mas specific ang pangalan = mas accurate  
+  Halimbawa: `NBA Finals 2026 Game 3` mas maganda kaysa `NBA`
+- Pwede mong isama ang "Live", "vs", year, etc.
 
 ## Files
 | File | Description |
 |------|-------------|
-| `streams.txt` | Dito ka maglalagay ng YouTube links |
-| `generate.py` | Script na kumukuha ng stream |
-| `playlist.m3u` | Output na playlist (auto-generated) |
-| `.github/workflows/update.yml` | GitHub Actions scheduler |
+| `streams.txt` | Dito ka maglalagay ng **pangalan lang** |
+| `generate.py` | Script na naghahanap + gumagawa ng M3U |
+| `playlist.m3u` | Output (auto-generated) |
+| `.github/workflows/update.yml` | Scheduler |
+
+---
+
+Gawa ni Grok • Free to use

@@ -1,11 +1,14 @@
 # ============================================
-# ILagay dito ang YouTube Live links mo
-# Format: Channel Name | YouTube URL
+# Ilagay LANG ang PANGALAN ng stream / match
+# Hindi na kailangan ng YouTube link
 # ============================================
 # Halimbawa:
-# NBA Finals Game 1 | https://www.youtube.com/watch?v=dQw4w9WgXcQ
-# Boxing Match | https://www.youtube.com/@ChannelName/live
-# UFC Fight Night | https://youtu.be/XXXXXXXX
+# NBA Finals Game 1
+# UFC 309
+# Manny Pacquiao vs
+# Lakers vs Celtics
+# Boxing Live
 
-# --- ILagay sa baba ang mga live mo ---
-Test Live | https://www.youtube.com/watch?v=jfKfPfyJRdk
+# --- Ilagay sa baba ang mga pangalan ---
+NBA Live
+lofi hip hop radio
