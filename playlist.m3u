@@ -1,12 +1,3 @@
 #EXTM3U
-# Generated: 2026-10-30 02:30:04 UTC
-# Auto-updated by GitHub Actions (Search by Name)
-
-#EXTINF:-1 tvg-id="Kapamilya Online Live" tvg-name="Kapamilya Online Live" group-title="OFFLINE",Kapamilya Online Live [OFFLINE]
-https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
-
-#EXTINF:-1 tvg-id="TV5 Kapatid Livestream" tvg-name="TV5 Kapatid Livestream" group-title="OFFLINE",TV5 Kapatid Livestream [OFFLINE]
-https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
-
-#EXTINF:-1 tvg-id="24 Oras Livestream" tvg-name="24 Oras Livestream" group-title="OFFLINE",24 Oras Livestream [OFFLINE]
-https://raw.githubusercontent.com/benmoose39/YouTube_to_m3u/main/assets/offline.mp4
+# Generated: 2026-10-30 02:34:43 UTC
+# Direct YouTube m3u8 only (no github, no watch links)
